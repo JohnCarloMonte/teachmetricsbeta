@@ -156,6 +156,32 @@ const SignUpForm = ({ adminOnly = false }: SignUpFormProps) => {
     fetchSections();
   }, [selectedCourse, courses]);
 
+  // --- FETCH STRANDS AND SECTIONS FROM DATABASE ---
+  useEffect(() => {
+    const fetchStrandsAndSections = async () => {
+      // Fetch strands
+      const { data: strandsData } = await supabase.from('strands').select('id, name');
+      if (!strandsData) {
+        setStrands([]);
+        return;
+      }
+      // Fetch sections for each strand
+      const strandsWithSections = await Promise.all(strandsData.map(async (strand: { id: string; name: string }) => {
+        const { data: sectionsData } = await supabase
+          .from('strand_sections')
+          .select('name')
+          .eq('strand_id', strand.id);
+        return {
+          ...strand,
+          sections: (sectionsData || []).map(s => s.name),
+          subjects: []
+        };
+      }));
+      setStrands(strandsWithSections);
+    };
+    fetchStrandsAndSections();
+  }, []);
+
   const loadDynamicData = () => {
     const storedStrands = localStorage.getItem('adminStrands');
     if (storedStrands) {
