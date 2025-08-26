@@ -30,6 +30,8 @@ interface Question {
   id: string;
   text: string;
   category: string;
+  category_name?: string;
+  text_filipino?: string;
 }
 
 interface User {
@@ -345,89 +347,136 @@ const AdminManagement = () => {
   };
 
   // Strand management functions
-  const addStrand = () => {
-    const newStrand: Strand = {
-      id: `STRAND_${Date.now()}`,
-      name: '',
-      sections: [],
-      subjects: []
-    };
-    const updatedStrands = [...strands, newStrand];
-    setStrands(updatedStrands);
-    localStorage.setItem('adminStrands', JSON.stringify(updatedStrands));
-    setEditingStrand(newStrand.id);
+  const addStrand = async () => {
+    const { data, error } = await supabase.from('strands').insert([{ name: '', }]).select();
+    if (!error && data && data[0]) {
+      setStrands(prev => [...prev, { ...data[0], sections: [], subjects: [] }]);
+      setEditingStrand(data[0].id);
+      toast.success('Strand added');
+    } else {
+      toast.error('Failed to add strand');
+    }
   };
 
-  const updateStrand = (id: string, field: keyof Strand, value: any) => {
+  const updateStrand = async (id: string, field: keyof Strand, value: any, showToast = false) => {
     const updatedStrands = strands.map(strand => 
       strand.id === id ? { ...strand, [field]: value } : strand
     );
     setStrands(updatedStrands);
-    localStorage.setItem('adminStrands', JSON.stringify(updatedStrands));
+    if (field === 'name') {
+      await supabase.from('strands').update({ name: value }).eq('id', id);
+    }
+    if (field === 'sections') {
+      await supabase.from('strand_sections').delete().eq('strand_id', id);
+      for (const section of value) {
+        await supabase.from('strand_sections').insert([{ strand_id: id, name: section }]);
+      }
+    }
+    if (field === 'subjects') {
+      await supabase.from('strand_subjects').delete().eq('strand_id', id);
+      for (const subject of value) {
+        await supabase.from('strand_subjects').insert([{ strand_id: id, name: subject }]);
+      }
+    }
+    if (showToast) toast.success('Strand updated');
   };
 
-  const deleteStrand = (id: string) => {
-    const updatedStrands = strands.filter(strand => strand.id !== id);
-    setStrands(updatedStrands);
-    localStorage.setItem('adminStrands', JSON.stringify(updatedStrands));
-    toast.success('Strand deleted successfully');
+  const deleteStrand = async (id: string) => {
+    setStrands(prev => prev.filter(strand => strand.id !== id));
+    await supabase.from('strands').delete().eq('id', id);
+    await supabase.from('strand_sections').delete().eq('strand_id', id);
+    await supabase.from('strand_subjects').delete().eq('strand_id', id);
+    toast.success('Strand deleted');
   };
 
   // Course management functions
-  const addCourse = () => {
-    const newCourse: Course = {
-      id: `COURSE_${Date.now()}`,
-      name: '',
-      sections: [],
-      subjects: []
-    };
-    const updatedCourses = [...courses, newCourse];
-    setCourses(updatedCourses);
-    localStorage.setItem('adminCourses', JSON.stringify(updatedCourses));
-    setEditingCourse(newCourse.id);
+  const addCourse = async () => {
+    const { data, error } = await supabase.from('courses').insert([{ name: '', }]).select();
+    if (!error && data && data[0]) {
+      setCourses(prev => [...prev, { ...data[0], sections: [], subjects: [] }]);
+      setEditingCourse(data[0].id);
+      toast.success('Course added');
+    } else {
+      toast.error('Failed to add course');
+    }
   };
 
-  const updateCourse = (id: string, field: keyof Course, value: any) => {
+  const updateCourse = async (id: string, field: keyof Course, value: any, showToast = false) => {
     const updatedCourses = courses.map(course => 
       course.id === id ? { ...course, [field]: value } : course
     );
     setCourses(updatedCourses);
-    localStorage.setItem('adminCourses', JSON.stringify(updatedCourses));
+    if (field === 'name') {
+      await supabase.from('courses').update({ name: value }).eq('id', id);
+    }
+    if (field === 'sections') {
+      await supabase.from('course_sections').delete().eq('course_id', id);
+      for (const section of value) {
+        await supabase.from('course_sections').insert([{ course_id: id, name: section }]);
+      }
+    }
+    if (field === 'subjects') {
+      await supabase.from('course_subjects').delete().eq('course_id', id);
+      for (const subject of value) {
+        await supabase.from('course_subjects').insert([{ course_id: id, name: subject }]);
+      }
+    }
+    if (showToast) toast.success('Course updated');
   };
 
-  const deleteCourse = (id: string) => {
-    const updatedCourses = courses.filter(course => course.id !== id);
-    setCourses(updatedCourses);
-    localStorage.setItem('adminCourses', JSON.stringify(updatedCourses));
-    toast.success('Course deleted successfully');
+  const deleteCourse = async (id: string) => {
+    setCourses(prev => prev.filter(course => course.id !== id));
+    await supabase.from('courses').delete().eq('id', id);
+    await supabase.from('course_sections').delete().eq('course_id', id);
+    await supabase.from('course_subjects').delete().eq('course_id', id);
+    toast.success('Course deleted');
   };
 
   // Question management functions
-  const addQuestion = () => {
-    const newQuestion: Question = {
-      id: `Q_${Date.now()}`,
+  const addQuestion = async () => {
+    const newQuestion = {
       text: '',
-      category: 'Overall'
+      category: 'Overall',
+      category_name: '',
+      text_filipino: ''
     };
-    const updatedQuestions = [...questions, newQuestion];
-    setQuestions(updatedQuestions);
-    localStorage.setItem('adminQuestions', JSON.stringify(updatedQuestions));
-    setEditingQuestion(newQuestion.id);
+    // Insert into DB
+    const { data, error } = await supabase.from('questions').insert([newQuestion]).select();
+    if (!error && data && data[0]) {
+      setQuestions(prev => [...prev, data[0]]);
+      setEditingQuestion(data[0].id);
+      toast.success('Question added');
+    } else {
+      toast.error('Failed to add question');
+    }
   };
 
-  const updateQuestion = (id: string, field: keyof Question, value: string) => {
+  const updateQuestion = async (id: string, field: keyof Question, value: string) => {
     const updatedQuestions = questions.map(question => 
       question.id === id ? { ...question, [field]: value } : question
     );
     setQuestions(updatedQuestions);
-    localStorage.setItem('adminQuestions', JSON.stringify(updatedQuestions));
+    // Update in DB
+    const updateData: any = {};
+    updateData[field] = value;
+    const { error } = await supabase.from('questions').update(updateData).eq('id', id);
+    if (!error) {
+      toast.success('Question updated');
+    } else {
+      toast.error('Failed to update question');
+    }
   };
 
-  const deleteQuestion = (id: string) => {
+  const deleteQuestion = async (id: string) => {
     const updatedQuestions = questions.filter(question => question.id !== id);
     setQuestions(updatedQuestions);
-    localStorage.setItem('adminQuestions', JSON.stringify(updatedQuestions));
-    toast.success('Question deleted successfully');
+    // Delete from DB
+    const { error } = await supabase.from('questions').delete().eq('id', id);
+    if (!error) {
+      toast.success('Question deleted');
+    } else {
+      toast.error('Failed to delete question');
+    }
   };
 
   return (
@@ -447,12 +496,15 @@ const AdminManagement = () => {
             <CardHeader>
               <CardTitle>Manage SHS Strands</CardTitle>
               <CardDescription>Add, edit, or remove strands and their sections/subjects</CardDescription>
-              <Button onClick={addStrand} className="w-fit">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Strand
-              </Button>
             </CardHeader>
             <CardContent>
+              {/* Add Strand Form at the top */}
+              <div className="mb-4">
+                <Button onClick={addStrand} className="w-fit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Strand
+                </Button>
+              </div>
               <div className="space-y-4">
                 {strands.map((strand) => (
                   <Card key={strand.id} className="p-4">
@@ -498,7 +550,7 @@ const AdminManagement = () => {
                     <div className="flex justify-end gap-2 mt-4">
                       {editingStrand === strand.id ? (
                         <>
-                          <Button size="sm" onClick={() => setEditingStrand(null)}>
+                          <Button size="sm" onClick={async () => { await updateStrand(strand.id, 'name', strand.name, true); await updateStrand(strand.id, 'sections', strand.sections, true); await updateStrand(strand.id, 'subjects', strand.subjects, true); setEditingStrand(null); toast.success('Strand added'); }}>
                             <Save className="h-4 w-4 mr-1" />
                             Save
                           </Button>
@@ -532,12 +584,15 @@ const AdminManagement = () => {
             <CardHeader>
               <CardTitle>Manage College Courses</CardTitle>
               <CardDescription>Add, edit, or remove courses and their sections/subjects</CardDescription>
-              <Button onClick={addCourse} className="w-fit">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Course
-              </Button>
             </CardHeader>
             <CardContent>
+              {/* Add Course Form at the top */}
+              <div className="mb-4">
+                <Button onClick={addCourse} className="w-fit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Course
+                </Button>
+              </div>
               <div className="space-y-4">
                 {courses.map((course) => (
                   <Card key={course.id} className="p-4">
@@ -583,7 +638,7 @@ const AdminManagement = () => {
                     <div className="flex justify-end gap-2 mt-4">
                       {editingCourse === course.id ? (
                         <>
-                          <Button size="sm" onClick={() => setEditingCourse(null)}>
+                          <Button size="sm" onClick={async () => { await updateCourse(course.id, 'name', course.name, true); await updateCourse(course.id, 'sections', course.sections, true); await updateCourse(course.id, 'subjects', course.subjects, true); setEditingCourse(null); }}>
                             <Save className="h-4 w-4 mr-1" />
                             Save
                           </Button>
@@ -617,12 +672,15 @@ const AdminManagement = () => {
             <CardHeader>
               <CardTitle>Manage Evaluation Questions</CardTitle>
               <CardDescription>Add, edit, or remove evaluation questions</CardDescription>
-              <Button onClick={addQuestion} className="w-fit">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Question
-              </Button>
             </CardHeader>
             <CardContent>
+              {/* Add Question Form at the top */}
+              <div className="mb-4">
+                <Button onClick={addQuestion} className="w-fit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Question
+                </Button>
+              </div>
               <div className="space-y-4">
                 {questions.map((question) => (
                   <Card key={question.id} className="p-4">
@@ -651,8 +709,7 @@ const AdminManagement = () => {
                               <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Communication">Communication</SelectItem>
-                              {Array.from(new Set(questions.map(q => q.category))).filter(cat => cat !== "Communication").map((cat) => (
+                              {Array.from(new Set(questions.map(q => q.category))).map((cat) => (
                                 <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                               ))}
                             </SelectContent>
@@ -662,10 +719,37 @@ const AdminManagement = () => {
                         )}
                       </div>
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <Label>Category Name</Label>
+                        {editingQuestion === question.id ? (
+                          <Input
+                            value={question.category_name || ''}
+                            onChange={(e) => updateQuestion(question.id, 'category_name', e.target.value)}
+                            placeholder="Enter category name"
+                          />
+                        ) : (
+                          <p>{question.category_name || '-'}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Text Filipino</Label>
+                        {editingQuestion === question.id ? (
+                          <Textarea
+                            value={question.text_filipino || ''}
+                            onChange={(e) => updateQuestion(question.id, 'text_filipino', e.target.value)}
+                            placeholder="Enter Filipino translation"
+                            rows={2}
+                          />
+                        ) : (
+                          <p>{question.text_filipino || '-'}</p>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex justify-end gap-2 mt-4">
                       {editingQuestion === question.id ? (
                         <>
-                          <Button size="sm" onClick={() => setEditingQuestion(null)}>
+                          <Button size="sm" onClick={async () => { await updateQuestion(question.id, 'text', question.text); await updateQuestion(question.id, 'category', question.category); await updateQuestion(question.id, 'category_name', question.category_name || ''); await updateQuestion(question.id, 'text_filipino', question.text_filipino || ''); setEditingQuestion(null); toast.success('Question added'); }}>
                             <Save className="h-4 w-4 mr-1" />
                             Save
                           </Button>
