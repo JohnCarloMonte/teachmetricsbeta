@@ -698,18 +698,6 @@ const loadData = async () => {
     teacher => matrixRatings[currentQuestion.id]?.[teacher.teacher.id] !== undefined
   );
 
-  // Debug mode: auto-rate all teachers/questions as 5
-  const autoRateAllFive = () => {
-    const newRatings: { [questionId: string]: { [teacherId: string]: number } } = {};
-    flatQuestions.forEach(q => {
-      newRatings[q.id] = {};
-      availableTeachers.forEach(t => {
-        newRatings[q.id][t.teacher.id] = Math.floor(Math.random() * 5) + 1;
-      });
-    });
-    setMatrixRatings(newRatings);
-  };
-
   // --- SUBMISSION SUMMARY VIEW ---
   function getSubmissionSummary(flatQuestions: any[], availableTeachers: any[], matrixRatings: any, teacherComments?: any) {
     return (
@@ -812,10 +800,6 @@ const loadData = async () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
-      {/* Debug button */}
-      <div className="mb-4 flex justify-end">
-        <Button variant="outline" onClick={autoRateAllFive}>Debug: Auto-rate all 5</Button>
-      </div>
       <Card>
         <CardHeader>
           <div className="mb-2">
