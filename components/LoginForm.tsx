@@ -118,6 +118,22 @@ type PasswordChangeFormValues = {
           return;
         }
         
+        // Check if the account is approved
+        if (profile.status === 'pending') {
+          toast.error('Your account is pending admin approval. Please wait for approval.');
+          return;
+        }
+        
+        if (profile.status === 'declined') {
+          toast.error('Your account has been declined. Please contact the administrator.');
+          return;
+        }
+        
+        if (profile.status !== 'approved') {
+          toast.error('Your account is not approved. Please contact the administrator.');
+          return;
+        }
+        
       // Create student session in localStorage
       const studentData = {
         id: profile.id,
@@ -424,7 +440,7 @@ type PasswordChangeFormValues = {
               name="usn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>USN (University Student Number)</FormLabel>
+                  <FormLabel>USN (Universal Student Number)</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="e.g., S12345" 
