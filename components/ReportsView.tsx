@@ -62,13 +62,18 @@ const ReportsView = () => {
           improvement: ev.suggestions,
         });
       });
-      // Calculate accumulated score for each teacher
+     
       Object.values(teacherMap).forEach((teacher: any) => {
-        let accumulatedScore = 0;
-        teacher.answers.forEach((ansObj: Record<string, number>) => {
-          accumulatedScore += Object.values(ansObj).reduce((sum: number, val: number) => sum + Number(val), 0);
-        });
-        teacher.accumulated_score = accumulatedScore;
+        // accumulated_score is now the sum of all scores per category (as shown in the table)
+        teacher.accumulated_score = categories.reduce((sum, cat) => {
+          const catData = teacher.category_ratings[cat.category];
+          return sum + (catData && typeof catData.score === 'number' ? catData.score : 0);
+        }, 0);
+        // Compute highest possible score
+        const numQuestions = questions.length;
+        teacher.highest_possible_score = numQuestions * teacher.total_respondents * 5;
+        // Compute overall rating as percent (2 decimal places)
+        teacher.overall_rating = teacher.highest_possible_score > 0 ? ((teacher.accumulated_score / teacher.highest_possible_score) * 100).toFixed(2) : "0.00";
       });
       setReportData(Object.values(teacherMap));
       setLoading(false);
@@ -92,14 +97,14 @@ const ReportsView = () => {
       "Highest Possible Score",
       "Accumulated Score",
       "Overall Rating",
-      ...categories.map(cat => cat.category_name || cat.category + " (%)"),
+      ...categories.map(cat => cat.category_name || cat.category ),
     ];
     const rows = reportData.map(teacher => {
       const numQuestions = questions.length;
       const highestPossibleScore = numQuestions * teacher.total_respondents * 5;
       const categoryPercents = categories.map(cat => {
         const catData = teacher.category_ratings[cat.category];
-        return catData && catData.max > 0 ? Math.round((catData.score / catData.max) * 100) + "%" : "0%";
+        return catData && catData.max > 0 ? Math.round(catData.score) : 0;
       });
       return [
         teacher.teacher_name,
@@ -216,16 +221,16 @@ const ReportsView = () => {
     });
     const blob = await Packer.toBlob(doc);
     saveAs(blob, "TBI_SCORE.docx");
-  };
+  }; 
 
   const handleTeacherChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const teacherId = e.target.value;
-    setSelectedTeacher(teacherId);
+    setSelectedTeacher(teacherId); 
     if (!teacherId) return;
     // Fetch comments for selected teacher
     const { data: evaluations } = await supabase
       .from("evaluation1")
-      .select("positive_feedback, suggestions, overall_rating, teacher_name")
+      .select("positive_feedback, suggestions, teacher_name")
       .eq("teacher_id", teacherId);
     setTeacherComments(
       (evaluations || []).map(ev => ({
@@ -233,8 +238,10 @@ const ReportsView = () => {
         improvement: ev.suggestions || ""
       }))
     );
-    setTeacherFinalRating(evaluations && evaluations[0] ? evaluations[0].overall_rating + "%" : "");
     setTeacherName(evaluations && evaluations[0] ? evaluations[0].teacher_name : "");
+    // Always use the computed overall rating from reportData for export
+    const teacherRow = reportData.find(t => t.teacher_id === teacherId);
+    setTeacherFinalRating(teacherRow ? teacherRow.overall_rating + "%" : "");
   };
 
   const handleExportCommentsWord = async () => {
@@ -261,7 +268,7 @@ const ReportsView = () => {
       new TableRow({
         children: [
           new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Positive Feedback", bold: true })], alignment: "center" })] }),
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Suggestions", bold: true })], alignment: "center" })] })
+          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Areas for Improvement", bold: true })], alignment: "center" })] })
         ]
       }),
       ...filteredComments.map(c =>
@@ -327,6 +334,26 @@ const ReportsView = () => {
     saveAs(blob, `${teacherName}_comments.docx`);
   };
 
+  useEffect(() => {
+    if (reportData.length === 0 || categories.length === 0) return;
+    // Update accumulated_score and overall_rating for each teacher
+    setReportData(prevData => prevData.map((teacher: any) => {
+      const accumulated_score = categories.reduce((sum, cat) => {
+        const catData = teacher.category_ratings[cat.category];
+        return sum + (catData && typeof catData.score === 'number' ? catData.score : 0);
+      }, 0);
+      const numQuestions = questions.length;
+      const highest_possible_score = numQuestions * teacher.total_respondents * 5;
+      const overall_rating = highest_possible_score > 0 ? ((accumulated_score / highest_possible_score) * 100).toFixed(2) : "0.00";
+      return {
+        ...teacher,
+        accumulated_score,
+        highest_possible_score,
+        overall_rating
+      };
+    }));
+  }, [categories, reportData, questions.length]);
+
   if (loading) {
     return <div className="p-8 text-center">Loading report...</div>;
   }
@@ -373,7 +400,7 @@ const ReportsView = () => {
                 <th className="border px-2 py-1">Accumulated Score</th>
                 <th className="border px-2 py-1">Overall Rating</th>
                 {categories.map(cat => (
-                  <th key={cat.category} className="border px-2 py-1">{cat.category_name || cat.category} (%)</th>
+                  <th key={cat.category} className="border px-2 py-1">{cat.category_name || cat.category} </th>
                 ))}
                 
               </tr>
@@ -392,9 +419,9 @@ const ReportsView = () => {
                     <td className="border px-2 py-1 text-center">{teacher.overall_rating}%</td>
                     {categories.map(cat => {
                       const catData = teacher.category_ratings[cat.category];
-                      const percent = catData && catData.max > 0 ? Math.round((catData.score / catData.max) * 100) : 0;
+                      const sum = catData ? Math.round(catData.score) : 0;
                       return (
-                        <td key={cat.category} className="border px-2 py-1 text-center">{percent}%</td>
+                        <td key={cat.category} className="border px-2 py-1 text-center">{sum}</td>
                       );
                     })}
                     
