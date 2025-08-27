@@ -37,12 +37,7 @@ const AdminLayout = ({ children, activeTab = "dashboard" }: AdminLayoutProps) =>
       icon: <Users className="h-5 w-5" />,
       href: '/admin-dashboard/teachers' 
     },
-    { 
-      id: 'sections', 
-      label: 'Students', 
-      icon: <Users className="h-5 w-5" />,
-      href: '/admin-dashboard/sections'
-    },
+
     { 
       id: 'system', 
       label: 'System', 
