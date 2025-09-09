@@ -535,7 +535,7 @@ const SignUpForm = ({ adminOnly = false }: SignUpFormProps) => {
                   />
                   
                   <FormItem>
-                    <FormLabel>USN (University Student Number)</FormLabel>
+                    <FormLabel>USN (Universal Student Number)</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="e.g., S12345678901" 
@@ -725,7 +725,7 @@ const SignUpForm = ({ adminOnly = false }: SignUpFormProps) => {
                     name="usn"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>USN (University Student Number)</FormLabel>
+                        <FormLabel>USN (Universal Student Number)</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="e.g., S12345678901" 
@@ -904,3 +904,4 @@ const SignUpForm = ({ adminOnly = false }: SignUpFormProps) => {
 };
 
 export default SignUpForm;
+
