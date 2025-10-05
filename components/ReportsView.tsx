@@ -267,15 +267,27 @@ const ReportsView = () => {
     const tableRows = [
       new TableRow({
         children: [
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Positive Feedback", bold: true })], alignment: "center" })] }),
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Areas for Improvement", bold: true })], alignment: "center" })] })
+          new TableCell({ 
+            children: [new Paragraph({ children: [new TextRun({ text: "Positive Feedback", bold: true })], alignment: "center" })],
+            margins: { top: 200, bottom: 200, left: 400, right: 400 } // add padding
+          }),
+          new TableCell({ 
+            children: [new Paragraph({ children: [new TextRun({ text: "Areas for Improvement", bold: true })], alignment: "center" })],
+            margins: { top: 200, bottom: 200, left: 400, right: 400 } // add padding
+          })
         ]
       }),
       ...filteredComments.map(c =>
         new TableRow({
           children: [
-            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: c.positive })], alignment: "center" })] }),
-            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: c.improvement })], alignment: "center" })] })
+            new TableCell({ 
+              children: [new Paragraph({ children: [new TextRun({ text: c.positive })], alignment: "center" })],
+              margins: { top: 200, bottom: 200, left: 400, right: 400 } // add padding
+            }),
+            new TableCell({ 
+              children: [new Paragraph({ children: [new TextRun({ text: c.improvement })], alignment: "center" })],
+              margins: { top: 200, bottom: 200, left: 400, right: 400 } // add padding
+            })
           ]
         })
       )
@@ -292,7 +304,7 @@ const ReportsView = () => {
       const byteArray = new Uint8Array(byteNumbers);
       logoImageRun = new Paragraph({
         children: [
-          new ImageRun({ data: byteArray, transformation: { width: 97, height: 56 } })
+          new ImageRun({ data: byteArray, transformation: { width: 210, height: 80 } }) // changed from 97x56 to 210x80
         ],
         alignment: "center"
       });
@@ -302,30 +314,172 @@ const ReportsView = () => {
         {
           children: [
             logoImageRun || new Paragraph({}),
-            new Paragraph({ children: [new TextRun({ text: "ACLC College of Daet", bold: true, size: 32 })], alignment: "center" }),
-            new Paragraph({ children: [new TextRun({ text: "1st Semester", size: 28 })], alignment: "center" }),
-               new Paragraph({ text: "" }),
+            new Paragraph({ children: [new TextRun({ text: "A Member of AMA Education System", size: 22 })], alignment: "center" }),
+            new Paragraph({ children: [new TextRun({ text: "2nd flr. Guinhawa Bldg., J. Lukban St., Daet, Camarines Norte", bold: false, size: 22 })], alignment: "center" }),            
+                           new Paragraph({ text: "" }),
                   new Paragraph({ text: "" }),
-            new Paragraph({ children: [new TextRun({ text: `EVALUATION RESULT OVERALL: ${teacherFinalRating}` })], alignment: "left" }),
-            new Paragraph({ children: [new TextRun({ text: `Date: ${dateStr}` })], alignment: "left" }),  
+            new Paragraph({ children: [new TextRun({ text: "OFFICE OF THE ACADEMIC HEAD", bold: true, size: 28 })], alignment: "center" }),
+               new Paragraph({ text: "" }),
+              new Paragraph({ text: "" }),
+            new Paragraph({ children: [new TextRun({ text: "TEACHERS' BEHAVIOR INVENTORY", bold: true, color: "FF0000", size: 28 })], alignment: "center" }),
+            new Paragraph({ children: [new TextRun({ text: "(FEEDBACK AND COMMENTS)", bold: true, size: 24 })], alignment: "center" }),
+           new Paragraph({ children: [new TextRun({ text: "1st Semester A/Y 2025-2026", bold: true, size: 24})], alignment: "center" }),
+
+
+
+            new Paragraph({ text: "" }),
+                  new Paragraph({ text: "" }),
+             new Paragraph({ children: [new TextRun({ text: `NAME OF FACULTY: ${teacherName}`, size: 24 })], alignment: "left" }),
+                          new Paragraph({ children: [new TextRun({ text: `POSITION: ASSISTANT INSTRUCTOR 1`, size: 24 })], alignment: "left" }),
+            new Paragraph({ children: [new TextRun({ text: `RATING: ${teacherFinalRating}` })], alignment: "left" }),
              new Paragraph({ text: "" }),
                 new Paragraph({ text: "" }),
                    new Paragraph({ text: "" }),
-            new Paragraph({ children: [new TextRun({ text: "Comments:", bold: true, size: 24 })], alignment: "left" }),
+            new Paragraph({ children: [new TextRun({ text: "STUDENTS' COMMENTS AND FEEDBACK", bold: true, size: 24 })], alignment: "center" }),
+               new Paragraph({ text: "" }),
+                  new Paragraph({ text: "" }),
+           
             new Table({ rows: tableRows, width: { size: 100, type: "pct" } }),
             new Paragraph({ text: "" }),
                new Paragraph({ text: "" }),
                   new Paragraph({ text: "" }),
                      new Paragraph({ text: "" }),
-            new Paragraph({ children: [new TextRun({ text: `Received By: ${teacherName}`, size: 24 })], alignment: "left" }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ children: [new TextRun({ text: "Evaluated by: JEROME SAMANTE", size: 24 })], alignment: "left" }),
-            new Paragraph({ children: [new TextRun({ text: "                          Academic Head", size: 20 })], alignment: "left" }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ children: [new TextRun({ text: "Approved By: Mariel Bhogs", size: 24 })], alignment: "left" }),
-            new Paragraph({ children: [new TextRun({ text: "                          School Director", size: 20 })], alignment: "left" }),
+           
+            // Signature section (Word export)
+            new Table({
+              rows: [
+                // Row 1: Headers
+                new TableRow({
+                  children: [
+                    new TableCell({
+                      children: [
+                        new Paragraph({
+                          children: [new TextRun({ text: "Prepared and verified by:", size: 22 })],
+                          alignment: "left"
+                        }),
+                      ],
+                      borders: {},
+                    }),
+                    new TableCell({
+                      children: [
+                        new Paragraph({
+                          children: [new TextRun({ text: "Noted by:", size: 22 })],
+                          alignment: "left"
+                        }),
+                      ],
+                      borders: {},
+                    }),
+                  ]
+                }),
+                       new TableRow({
+                  children: [
+                    new TableCell({ children: [new Paragraph({})], borders: {} }),
+                    new TableCell({ children: [new Paragraph({})], borders: {} }),
+                  ]
+                }),
+                // Empty row
+                new TableRow({
+                  children: [
+                    new TableCell({ children: [new Paragraph({})], borders: {} }),
+                    new TableCell({ children: [new Paragraph({})], borders: {} }),
+                  ]
+                }),
+                // Row 2: Names and positions
+                new TableRow({
+                  children: [
+                    new TableCell({
+                      children: [
+                        new Paragraph({
+                          children: [
+                            new TextRun({ text: "JEROME L. SAMANTE, LPT.", bold: true, underline: {}, size: 22 }),
+                          ],
+                          alignment: "left"
+                        }),
+                        new Paragraph({
+                          children: [new TextRun({ text: "Academic Head", size: 20 })],
+                          alignment: "left"
+                        }),
+                      ],
+                      borders: {},
+                    }),
+                    new TableCell({
+                      children: [
+                        new Paragraph({
+                          children: [
+                            new TextRun({ text: "MARIEL F. BUGAGAO", bold: true, underline: {}, size: 22 }),
+                          ],
+                          alignment: "center"
+                        }),
+                        new Paragraph({
+                          children: [new TextRun({ text: "School Director", size: 20 })],
+                          alignment: "center"
+                        }),
+                      ],
+                      borders: {},
+                    }),
+                  ]
+                }),
+                // Empty row
+                new TableRow({
+                  children: [
+                    new TableCell({ children: [new Paragraph({})], borders: {} }),
+                    new TableCell({ children: [new Paragraph({})], borders: {} }),
+                  ]
+                }),
+                // Row 3: Received by
+                new TableRow({
+                  children: [
+                    new TableCell({
+                      children: [
+                        new Paragraph({
+                          children: [new TextRun({ text: "Received by:", size: 22 })],
+                          alignment: "left"
+                        }),
+                        new Paragraph({}),
+                        new Paragraph({
+                          children: [new TextRun({ text: "_________________________", underline: {}, size: 22 })],
+                          alignment: "left"
+                        }),
+                        new Paragraph({
+                          children: [new TextRun({ text: "Name and Signature of Faculty", size: 18 })],
+                          alignment: "left"
+                        }),
+                        new Paragraph({
+                          children: [new TextRun({ text: "Date:", size: 18 })],
+                          alignment: "left"
+                        }),
+                      ],
+                      borders: {},
+                    }),
+                    new TableCell({
+                      children: [
+                        new Paragraph({}),
+                        new Paragraph({}),
+                        new Paragraph({}),
+                        new Paragraph({}),
+                      ],
+                      borders: {},
+                    }),
+                  ]
+                }),
+                // Empty row
+                new TableRow({
+                  children: [
+                    new TableCell({ children: [new Paragraph({})], borders: {} }),
+                    new TableCell({ children: [new Paragraph({})], borders: {} }),
+                  ]
+                }),
+              ],
+              width: { size: 100, type: "pct" },
+              borders: {
+                top: { style: "none" },
+                bottom: { style: "none" },
+                left: { style: "none" },
+                right: { style: "none" },
+                insideHorizontal: { style: "none" },
+                insideVertical: { style: "none" }
+              }
+            }),
           ]
         }
       ]
@@ -394,13 +548,13 @@ const ReportsView = () => {
           <table className="min-w-full border text-sm">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border px-2 py-1">Teacher</th>
-                <th className="border px-2 py-1">Respondents</th>
-                <th className="border px-2 py-1">Highest Possible Score</th>
-                <th className="border px-2 py-1">Accumulated Score</th>
-                <th className="border px-2 py-1">Overall Rating</th>
+                <th className="border px-4 py-2">Teacher</th>
+                <th className="border px-4 py-2">Respondents</th>
+                <th className="border px-4 py-2">Highest Possible Score</th>
+                <th className="border px-4 py-2">Accumulated Score</th>
+                <th className="border px-4 py-2">Overall Rating</th>
                 {categories.map(cat => (
-                  <th key={cat.category} className="border px-2 py-1">{cat.category_name || cat.category} </th>
+                  <th key={cat.category} className="border px-4 py-2">{cat.category_name || cat.category} </th>
                 ))}
                 
               </tr>
@@ -412,16 +566,16 @@ const ReportsView = () => {
                 const highestPossibleScore = numQuestions * teacher.total_respondents * 5;
                 return (
                   <tr key={teacher.teacher_id}>
-                    <td className="border px-2 py-1 font-bold">{teacher.teacher_name}</td>
-                    <td className="border px-2 py-1 text-center">{teacher.total_respondents}</td>
-                    <td className="border px-2 py-1 text-center">{highestPossibleScore}</td>
-                    <td className="border px-2 py-1 text-center">{teacher.accumulated_score}</td>
-                    <td className="border px-2 py-1 text-center">{teacher.overall_rating}%</td>
+                    <td className="border px-4 py-2 font-bold">{teacher.teacher_name}</td>
+                    <td className="border px-4 py-2 text-center">{teacher.total_respondents}</td>
+                    <td className="border px-4 py-2 text-center">{highestPossibleScore}</td>
+                    <td className="border px-4 py-2 text-center">{teacher.accumulated_score}</td>
+                    <td className="border px-4 py-2 text-center">{teacher.overall_rating}%</td>
                     {categories.map(cat => {
                       const catData = teacher.category_ratings[cat.category];
                       const sum = catData ? Math.round(catData.score) : 0;
                       return (
-                        <td key={cat.category} className="border px-2 py-1 text-center">{sum}</td>
+                        <td key={cat.category} className="border px-4 py-2 text-center">{sum}</td>
                       );
                     })}
                     
@@ -432,6 +586,7 @@ const ReportsView = () => {
           </table>
         </div>
       )}
+
     </div>
   );
 };
