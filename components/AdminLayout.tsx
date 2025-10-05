@@ -1,18 +1,27 @@
-import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { FileText, Home, Users, BarChart, UserPlus, Settings, Filter, Cog, Printer, FileCheck, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { FileText, Home, Users, BarChart, UserPlus, Settings, Filter, Cog, Printer, FileCheck } from "lucide-react";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
   activeTab?: string;
 }
 
+const years = [
+  { id: "2025", label: "2025" },
+  { id: "2026", label: "2026" },
+  { id: "2027", label: "2027" },
+];
+
+// Get current year as string, fallback to "2024" if not in years
+const currentYear = (() => {
+  const y = String(new Date().getFullYear());
+  return years.some(yr => yr.id === y) ? y : "2025";
+})();
+
 const AdminLayout = ({ children, activeTab = "dashboard" }: AdminLayoutProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
   
   // Determine active tab from URL if not explicitly provided
   const currentTab = activeTab || location.pathname.split('/').pop() || 'dashboard';
@@ -30,7 +39,6 @@ const AdminLayout = ({ children, activeTab = "dashboard" }: AdminLayoutProps) =>
       icon: <FileText className="h-5 w-5" />,
       href: '/admin-dashboard/reports'
     },
- 
     { 
       id: 'teachers', 
       label: 'Teachers', 
@@ -38,18 +46,11 @@ const AdminLayout = ({ children, activeTab = "dashboard" }: AdminLayoutProps) =>
       href: '/admin-dashboard/teachers' 
     },
     { 
-      id: 'sections', 
-      label: 'Students', 
-      icon: <Users className="h-5 w-5" />,
-      href: '/admin-dashboard/sections'
-    },
-    { 
       id: 'system', 
       label: 'System', 
       icon: <Cog className="h-5 w-5" />,
       href: '/admin-dashboard/system'
     },
-  
     { 
       id: 'password-resets', 
       label: 'Password Resets', 
@@ -68,9 +69,11 @@ const AdminLayout = ({ children, activeTab = "dashboard" }: AdminLayoutProps) =>
       icon: <Filter className="h-5 w-5" />,
       href: '/admin-dashboard/filter-words'
     },
- 
   ];
   
+  // Add year state
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm">
@@ -85,56 +88,69 @@ const AdminLayout = ({ children, activeTab = "dashboard" }: AdminLayoutProps) =>
               Academic Head Dashboard
             </Link>
           </div>
-          <div className="flex items-center">
-            <Link 
-              to="/" 
-              className="text-sm text-muted-foreground hover:text-primary hidden md:block"
-            >
-              Logout
-            </Link>
-            <button 
-              className="md:hidden text-muted-foreground hover:text-primary" 
-              onClick={() => window.location.href = "/"}
-            >
-              <LogOut className="h-5 w-5" />
-            </button>
+          <div>
+            <Link to="/" className="text-sm text-muted-foreground hover:text-primary">Logout</Link>
           </div>
         </div>
       </div>
       
       <div className="container mx-auto px-4 py-6">
+        {/* Year Tabs */}
+        <div className="mb-6 flex gap-2">
+          {years.map(year => (
+            <button
+              key={year.id}
+              className={cn(
+                "px-4 py-2 rounded-md font-semibold text-sm transition-colors",
+                selectedYear === year.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted hover:bg-primary/10"
+              )}
+              onClick={() => setSelectedYear(year.id)}
+            >
+              {year.label}
+            </button>
+          ))}
+        </div>
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar navigation */}
           <aside className="w-full lg:w-64 bg-white rounded-lg shadow-sm p-4">
             <nav className="space-y-1">
-              {tabs.map((tab) => (
-                <Link
-                  key={tab.id}
-                  to={tab.href}
-                  className={cn(
-                    "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    currentTab === tab.id 
-                      ? "bg-primary text-primary-foreground" 
-                      : "hover:bg-muted"
-                  )}
-                >
-                  {tab.icon}
-                  <span className="ml-3">{tab.label}</span>
-                </Link>
-              ))}
+              {["2024", "2025"].includes(selectedYear) ? (
+                tabs.map((tab) => (
+                  <Link
+                    key={tab.id}
+                    to={tab.href}
+                    className={cn(
+                      "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                      currentTab === tab.id 
+                        ? "bg-primary text-primary-foreground" 
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    {tab.icon}
+                    <span className="ml-3">{tab.label}</span>
+                  </Link>
+                ))
+              ) : (
+                <div className="text-muted-foreground text-center py-8">
+                  No tabs available for {selectedYear}.<br />
+                  <span className="text-xs">Coming soon.</span>
+                </div>
+              )}
             </nav>
-            <Button
-              variant={activeTab === "advanced" ? "default" : "outline"}
-              onClick={() => navigate("/admin-dashboard/advanced")}
-              className="w-full mb-2"
-            >
-              Advanced
-            </Button>
           </aside>
           
           {/* Main content area */}
           <main className="flex-1 bg-white rounded-lg shadow-sm p-4 md:p-6 overflow-x-auto">
-            {children}
+            {["2024", "2025"].includes(selectedYear) ? (
+              children
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                <h2 className="text-lg font-semibold mb-2">No content for {selectedYear}</h2>
+                <p className="text-sm">This year is currently empty.</p>
+              </div>
+            )}
           </main>
         </div>
       </div>
