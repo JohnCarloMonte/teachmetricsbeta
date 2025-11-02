@@ -20,15 +20,21 @@ const ReportsView = () => {
   useEffect(() => {
     const fetchReport = async () => {
       setLoading(true);
-      // Fetch all questions to get categories and names
+
+      // Fetch questions and build local categories array (use locals for calculations)
       const { data: questionsData } = await supabase.from("questions").select("category, category_name, id");
-      setQuestions(questionsData || []);
-      const uniqueCategories = Array.from(
-        new Map((questionsData || []).map(q => [q.category, { category: q.category, category_name: q.category_name }])).values()
+      const localQuestions = questionsData || [];
+      const localCategories = Array.from(
+        new Map(localQuestions.map(q => [q.category, { category: q.category, category_name: q.category_name }])).values()
       );
-      setCategories(uniqueCategories);
+      setQuestions(localQuestions);
+      setCategories(localCategories);
+
       // Fetch all evaluations
-      const { data: evaluations } = await supabase.from("evaluation1").select("teacher_id, teacher_name, total_respondents, highest_possible_score, answers, overall_rating, category_ratings, positive_feedback, suggestions");
+      const { data: evaluations } = await supabase
+        .from("evaluation1")
+        .select("teacher_id, teacher_name, total_respondents, highest_possible_score, answers, overall_rating, category_ratings, positive_feedback, suggestions");
+
       // Group by teacher
       const teacherMap: { [id: string]: any } = {};
       (evaluations || []).forEach(ev => {
@@ -62,22 +68,24 @@ const ReportsView = () => {
           improvement: ev.suggestions,
         });
       });
-     
+
+      // Compute accumulated_score and overall_rating using localQuestions/localCategories
       Object.values(teacherMap).forEach((teacher: any) => {
-        // accumulated_score is now the sum of all scores per category (as shown in the table)
-        teacher.accumulated_score = categories.reduce((sum, cat) => {
+        teacher.accumulated_score = localCategories.reduce((sum, cat) => {
           const catData = teacher.category_ratings[cat.category];
           return sum + (catData && typeof catData.score === 'number' ? catData.score : 0);
         }, 0);
-        // Compute highest possible score
-        const numQuestions = questions.length;
+        const numQuestions = localQuestions.length;
         teacher.highest_possible_score = numQuestions * teacher.total_respondents * 5;
-        // Compute overall rating as percent (2 decimal places)
-        teacher.overall_rating = teacher.highest_possible_score > 0 ? ((teacher.accumulated_score / teacher.highest_possible_score) * 100).toFixed(2) : "0.00";
+        teacher.overall_rating = teacher.highest_possible_score > 0
+          ? ((teacher.accumulated_score / teacher.highest_possible_score) * 100).toFixed(2)
+          : "0.00";
       });
+
       setReportData(Object.values(teacherMap));
       setLoading(false);
     };
+
     fetchReport();
   }, []);
 
@@ -488,26 +496,6 @@ const ReportsView = () => {
     saveAs(blob, `${teacherName}_comments.docx`);
   };
 
-  useEffect(() => {
-    if (reportData.length === 0 || categories.length === 0) return;
-    // Update accumulated_score and overall_rating for each teacher
-    setReportData(prevData => prevData.map((teacher: any) => {
-      const accumulated_score = categories.reduce((sum, cat) => {
-        const catData = teacher.category_ratings[cat.category];
-        return sum + (catData && typeof catData.score === 'number' ? catData.score : 0);
-      }, 0);
-      const numQuestions = questions.length;
-      const highest_possible_score = numQuestions * teacher.total_respondents * 5;
-      const overall_rating = highest_possible_score > 0 ? ((accumulated_score / highest_possible_score) * 100).toFixed(2) : "0.00";
-      return {
-        ...teacher,
-        accumulated_score,
-        highest_possible_score,
-        overall_rating
-      };
-    }));
-  }, [categories, reportData, questions.length]);
-
   if (loading) {
     return <div className="p-8 text-center">Loading report...</div>;
   }
@@ -515,13 +503,14 @@ const ReportsView = () => {
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <h2 className="text-2xl font-bold mb-4">Evaluation Report</h2>
-      
+
       <button
         className="mb-4 ml-2 px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-800"
         onClick={handleExportTBIScoreWord}
       >
         Export TBI SCORE
       </button>
+
       <div className="mb-4 flex gap-2 items-center">
         <select
           className="px-2 py-1 border rounded"
@@ -541,6 +530,7 @@ const ReportsView = () => {
           Export Comments
         </button>
       </div>
+
       {reportData.length === 0 ? (
         <div>No evaluation data found.</div>
       ) : (
@@ -554,14 +544,12 @@ const ReportsView = () => {
                 <th className="border px-4 py-2">Accumulated Score</th>
                 <th className="border px-4 py-2">Overall Rating</th>
                 {categories.map(cat => (
-                  <th key={cat.category} className="border px-4 py-2">{cat.category_name || cat.category} </th>
+                  <th key={cat.category} className="border px-4 py-2">{cat.category_name || cat.category}</th>
                 ))}
-                
               </tr>
             </thead>
             <tbody>
               {reportData.map(teacher => {
-                // Calculate highest possible score
                 const numQuestions = questions.length;
                 const highestPossibleScore = numQuestions * teacher.total_respondents * 5;
                 return (
@@ -578,7 +566,6 @@ const ReportsView = () => {
                         <td key={cat.category} className="border px-4 py-2 text-center">{sum}</td>
                       );
                     })}
-                    
                   </tr>
                 );
               })}
@@ -586,7 +573,6 @@ const ReportsView = () => {
           </table>
         </div>
       )}
-
     </div>
   );
 };
