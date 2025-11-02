@@ -324,7 +324,7 @@ type PasswordChangeFormValues = {
               />
             </div>
             <div>
-              <label htmlFor="usn" className="block text-sm font-medium mb-1">USNR</label>
+              <label htmlFor="usn" className="block text-sm font-medium mb-1">USN</label>
               <Input
                 id="usn"
                 type="text"
@@ -440,7 +440,7 @@ type PasswordChangeFormValues = {
               name="usn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>USN (Universal Student Number)</FormLabel>
+                  <FormLabel>USN (Universal Student Number)DWDWDWDW</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="e.g., S12345" 
@@ -606,6 +606,7 @@ type PasswordChangeFormValues = {
 };
 
 export default LoginForm;
+
 
 
 
