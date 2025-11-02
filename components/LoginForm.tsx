@@ -440,7 +440,7 @@ type PasswordChangeFormValues = {
               name="usn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>USN (Universal Student Numberdwdw)</FormLabel>
+                  <FormLabel>USN (Universal Student Number)</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="e.g., S12345" 
@@ -606,5 +606,6 @@ type PasswordChangeFormValues = {
 };
 
 export default LoginForm;
+
 
 
