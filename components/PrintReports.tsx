@@ -43,43 +43,43 @@ const PrintReports = () => {
     }
   };
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: 'Teacher Evaluation Reports',
-  });
+    const handlePrint = useReactToPrint({
+      contentRef: printRef,
+      documentTitle: 'Teacher Evaluation Reports',
+    });
 
-  const calculateTeacherStats = (teacherId: string) => {
-    const teacherEvals = evaluations.filter(e => e.teacher_id === teacherId);
-    if (teacherEvals.length === 0) return null;
+    const calculateTeacherStats = (teacherId: string) => {
+      const teacherEvals = evaluations.filter(e => e.teacher_id === teacherId);
+      if (teacherEvals.length === 0) return null;
 
-    const totalRating = teacherEvals.reduce((sum, e) => sum + e.overall_rating, 0);
-    const averageRating = totalRating / teacherEvals.length;
+      const totalRating = teacherEvals.reduce((sum, e) => sum + e.overall_rating, 0);
+      const averageRating = totalRating / teacherEvals.length;
 
-    return {
-      totalEvaluations: teacherEvals.length,
-      averageRating: averageRating.toFixed(1),
-      positiveComments: teacherEvals.map(e => e.positive_feedback).filter(Boolean),
-      suggestions: teacherEvals.map(e => e.suggestions).filter(Boolean),
-      negativeComments: teacherEvals.map(e => e.negative_feedback).filter(Boolean)
+      return {
+        totalEvaluations: teacherEvals.length,
+        averageRating: averageRating.toFixed(1),
+        positiveComments: teacherEvals.map(e => e.positive_feedback).filter(Boolean),
+        suggestions: teacherEvals.map(e => e.suggestions).filter(Boolean),
+        negativeComments: teacherEvals.map(e => e.negative_feedback).filter(Boolean)
+      };
     };
-  };
 
-  if (loading) {
-    return <div className="p-6">Loading...</div>;
-  }
+    if (loading) {
+      return <div className="p-6">Loading...</div>;
+    }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Print Reports</h2>
-          <p className="text-muted-foreground">Generate printable evaluation reports</p>
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Print Reports</h2>
+            <p className="text-muted-foreground">Generate printable evaluation reports</p>
+          </div>
+          <Button onClick={handlePrint} className="flex items-center gap-2">
+            <Printer className="h-4 w-4" />
+            Print All Reports
+          </Button>
         </div>
-        <Button onClick={handlePrint} className="flex items-center gap-2">
-          <Printer className="h-4 w-4" />
-          Print All Reports
-        </Button>
-      </div>
 
       <div ref={printRef} className="space-y-8 print:p-8">
         {/* Print Header */}
@@ -176,7 +176,7 @@ const PrintReports = () => {
 
                   {stats.positiveComments.length > 0 && (
                     <div>
-                      <h4 className="font-medium mb-2">Positive Comments</h4>
+                      <h4 className="font-medium mb-2">Good Qualitiess</h4>
                       <div className="space-y-1">
                         {stats.positiveComments.slice(0, 5).map((comment, index) => (
                           <p key={index} className="text-sm text-gray-600">• {comment}</p>
@@ -187,7 +187,7 @@ const PrintReports = () => {
 
                   {stats.suggestions.length > 0 && (
                     <div>
-                      <h4 className="font-medium mb-2">Suggestions for Improvement</h4>
+                      <h4 className="font-medium mb-2">Areas for Improvement</h4>
                       <div className="space-y-1">
                         {stats.suggestions.slice(0, 5).map((suggestion, index) => (
                           <p key={index} className="text-sm text-gray-600">• {suggestion}</p>
@@ -215,7 +215,7 @@ const PrintReports = () => {
                         <div className="border-b border-gray-400 mb-2 pb-1">
                           <p className="text-sm font-medium">Mariel Bhogs</p>
                         </div>
-                        <p className="text-xs text-gray-600">Approved by: (School Director)</p>
+                        <p className="text-xs text-gray-600">Noted by: (School Director)</p>
                       </div>
                     </div>
                   </div>
