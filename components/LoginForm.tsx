@@ -532,7 +532,7 @@ type PasswordChangeFormValues = {
             }} 
             className="w-full"
           >
-            Login as Academic Head
+            Login as Academic Headfefefefefe
           </Button>
         </div>
 
@@ -606,3 +606,4 @@ type PasswordChangeFormValues = {
 };
 
 export default LoginForm;
+
