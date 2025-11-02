@@ -52,209 +52,236 @@ export const TeacherEvaluationReport: React.FC<TeacherEvaluationReportProps> = (
   const overallPerformance = getPerformanceLevel(teacherResult.overall_rating);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 print:shadow-none">
-      {/* Header Section */}
-      <div className="bg-white rounded-lg shadow-lg p-6 print:shadow-none print:border">
-        <div className="flex items-center justify-between mb-6 print:mb-4">
-          <div className="flex items-center gap-4">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Print Reports</h2>
+            <p className="text-muted-foreground">Generate printable evaluation reports</p>
+          </div>
+          <Button onClick={handlePrint} className="flex items-center gap-2">
+            <Printer className="h-4 w-4" />
+            Print All Reports
+          </Button>
+        </div>
+
+      <div ref={printRef} className="space-y-8 print:p-8">
+        {/* Print Header */}
+        <div className="text-center border-b pb-4">
+          <div className="flex items-center justify-center gap-4 mb-4">
             <img 
-              src="/lovable-uploads/86715b0f-5625-40bf-a473-6274a50edf1f.png" 
+              src="/lovable-uploads/16679378-5052-48ed-ac5a-be364abdd6c9.png" 
               alt="ACLC Logo" 
               className="h-16 w-16 object-contain"
             />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">ACLC College of Daet</h1>
-              <h2 className="text-lg font-semibold text-gray-700">Teacher Evaluation Report</h2>
-              <p className="text-sm text-gray-600">{evaluationPeriod}</p>
+              <h1 className="text-2xl font-bold">ACLC - Teacher Evaluation Results</h1>
+              <p className="text-gray-600">Academic Year 2024-2025</p>
             </div>
           </div>
-          <Button onClick={handlePrint} className="no-print flex items-center gap-2">
-            <Printer className="h-4 w-4" />
-            Print Report
-          </Button>
         </div>
 
-        {/* Teacher Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Overall Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Teacher Information</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Total Evaluations
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div>
-                  <span className="font-medium">Name: </span>
-                  <span className="text-lg font-semibold">{teacherName}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Total Evaluations: </span>
-                  <span className="text-lg font-semibold">{teacherResult.total_evaluations}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Overall Rank: </span>
-                  <Badge variant="outline" className="ml-2">
-                    #{teacherResult.overall_rank || 'N/A'}
-                  </Badge>
-                </div>
+              <div className="text-3xl font-bold">{evaluations.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Evaluated Teachers
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {new Set(evaluations.map(e => e.teacher_id)).size}
               </div>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Overall Performance</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BarChart className="h-5 w-5" />
+                Average Rating
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">Overall Rating:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold">{teacherResult.overall_rating.toFixed(1)}%</span>
-                    <Badge className={overallPerformance.color}>
-                      {overallPerformance.level}
+              <div className="text-3xl font-bold">
+                {evaluations.length > 0 
+                  ? (evaluations.reduce((sum, e) => sum + e.overall_rating, 0) / evaluations.length).toFixed(1)
+                  : '0.0'
+                }
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Teacher-wise Reports */}
+        <div className="space-y-6">
+          <h2 className="text-xl font-bold">Individual Teacher Reports</h2>
+          
+          {teachers.map((teacher) => {
+            const stats = calculateTeacherStats(teacher.id);
+            if (!stats) return null;
+
+            return (
+              <Card key={teacher.id} className="page-break-inside-avoid">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{teacher.name}</CardTitle>
+                      <p className="text-muted-foreground">{teacher.department}</p>
+                    </div>
+                    <Badge variant={parseFloat(stats.averageRating) >= 4 ? 'default' : 'secondary'}>
+                      {stats.averageRating}/5.0
                     </Badge>
                   </div>
-                </div>
-                <Progress value={teacherResult.overall_rating} className="h-3" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="font-medium">Total Evaluations</p>
+                      <p className="text-2xl font-bold">{stats.totalEvaluations}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Average Rating</p>
+                      <p className="text-2xl font-bold">{stats.averageRating}/5.0</p>
+                    </div>
+                  </div>
 
-        {/* Detailed Scores */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Detailed Performance Scores</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(teacherResult.average_scores).map(([key, score]) => {
-                const performance = getPerformanceLevel(score);
-                const categoryName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                const rank = teacherResult.category_ranks?.[`${key}_rank` as keyof typeof teacherResult.category_ranks];
-                
-                return (
-                  <div key={key} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{categoryName}:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{score.toFixed(1)}%</span>
-                        {rank && (
-                          <Badge variant="outline" className="text-xs">
-                            Rank #{rank}
-                          </Badge>
-                        )}
+                  {stats.positiveComments.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-2">Good Qualitiess</h4>
+                      <div className="space-y-1">
+                        {stats.positiveComments.slice(0, 5).map((comment, index) => (
+                          <p key={index} className="text-sm text-gray-600">• {comment}</p>
+                        ))}
                       </div>
                     </div>
-                    <Progress value={score} className="h-2" />
-                    <Badge className={`${performance.color} text-xs`}>
-                      {performance.level}
-                    </Badge>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  )}
 
-        {/* Comments Section */}
-        {(teacherResult.positive_comments.length > 0 || teacherResult.suggestions.length > 0) && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Student Feedback</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {teacherResult.positive_comments.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-green-700 mb-2">Positive Comments</h4>
-                  <div className="space-y-2">
-                    {teacherResult.positive_comments.slice(0, 10).map((comment, index) => (
-                      <div key={index} className="bg-green-50 p-3 rounded-md border-l-4 border-green-400">
-                        <p className="text-sm text-gray-700">"{comment}"</p>
+                  {stats.suggestions.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-2">Areas for Improvement</h4>
+                      <div className="space-y-1">
+                        {stats.suggestions.slice(0, 5).map((suggestion, index) => (
+                          <p key={index} className="text-sm text-gray-600">• {suggestion}</p>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                    </div>
+                  )}
 
-              {teacherResult.suggestions.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-blue-700 mb-2">Suggestions for Improvement</h4>
-                  <div className="space-y-2">
-                    {teacherResult.suggestions.slice(0, 10).map((suggestion, index) => (
-                      <div key={index} className="bg-blue-50 p-3 rounded-md border-l-4 border-blue-400">
-                        <p className="text-sm text-gray-700">"{suggestion}"</p>
+                  {/* Signature Section */}
+                  <div className="border-t pt-4 mt-6">
+                    <div className="grid grid-cols-3 gap-8 text-center">
+                      <div>
+                        <div className="border-b border-gray-400 mb-2 pb-1">
+                          <p className="text-sm font-medium">{teacher.name}</p>
+                        </div>
+                        <p className="text-xs text-gray-600">Received by: (Teacher)</p>
                       </div>
-                    ))}
+                      <div>
+                        <div className="border-b border-gray-400 mb-2 pb-1">
+                          <p className="text-sm font-medium">Jerome Samante</p>
+                        </div>
+                        <p className="text-xs text-gray-600">Evaluated by: (Academic Head)</p>
+                      </div>
+                      <div>
+                        <div className="border-b border-gray-400 mb-2 pb-1">
+                          <p className="text-sm font-medium">Mariel Bhogs</p>
+                        </div>
+                        <p className="text-xs text-gray-600">Noted by: (School Director)</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Overall Summary */}
+        <Card className="page-break-before">
+          <CardHeader>
+            <CardTitle>Overall Evaluation Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="font-medium">Total Evaluations Submitted</p>
+                  <p className="text-2xl font-bold">{evaluations.length}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Teachers Evaluated</p>
+                  <p className="text-2xl font-bold">{new Set(evaluations.map(e => e.teacher_id)).size}</p>
+                </div>
+              </div>
+
+              {/* All Comments */}
+              <div>
+                <h4 className="font-medium mb-2">All Comments</h4>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {evaluations.map((evaluation, index) => (
+                    <div key={index} className="border-l-4 border-gray-200 pl-4">
+                      <p className="font-medium text-sm">{evaluation.teacher_name}</p>
+                      {evaluation.positive_feedback && (
+                        <p className="text-sm text-green-600">+ {evaluation.positive_feedback}</p>
+                      )}
+                      {evaluation.suggestions && (
+                        <p className="text-sm text-blue-600">→ {evaluation.suggestions}</p>
+                      )}
+                      {evaluation.negative_feedback && (
+                        <p className="text-sm text-red-600">- {evaluation.negative_feedback}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Signatures */}
+              <div className="border-t pt-4 mt-6">
+                <div className="grid grid-cols-2 gap-8 text-center">
+                  <div>
+                    <div className="border-b border-gray-400 mb-2 pb-1">
+                      <p className="text-sm font-medium">Jerome Samante</p>
+                    </div>
+                    <p className="text-xs text-gray-600">Evaluated by: (Academic Head)</p>
+                  </div>
+                  <div>
+                    <div className="border-b border-gray-400 mb-2 pb-1">
+                      <p className="text-sm font-medium">Mariel Bhogs</p>
+                    </div>
+                    <p className="text-xs text-gray-600">Approved by: (School Director)</p>
                   </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Signature Section */}
-        <Card className="print:border-t-2 print:border-gray-300">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-3 gap-8 text-center">
-              <div>
-                <div className="border-b-2 border-gray-400 mb-2 pb-1 h-12 flex items-end justify-center">
-                  <p className="text-sm font-medium">{teacherName}</p>
-                </div>
-                <p className="text-xs text-gray-600">Received by: (Teacher)</p>
-                <p className="text-xs text-gray-500 mt-1">Date: _____________</p>
-              </div>
-              <div>
-                <div className="border-b-2 border-gray-400 mb-2 pb-1 h-12 flex items-end justify-center">
-                  <p className="text-sm font-medium">Jerome Samante</p>
-                </div>
-                <p className="text-xs text-gray-600">Evaluated by: (Academic Head)</p>
-                <p className="text-xs text-gray-500 mt-1">Date: _____________</p>
-              </div>
-              <div>
-                <div className="border-b-2 border-gray-400 mb-2 pb-1 h-12 flex items-end justify-center">
-                  <p className="text-sm font-medium">Mariel Bhogs</p>
-                </div>
-                <p className="text-xs text-gray-600">Approved by: (School Director)</p>
-                <p className="text-xs text-gray-500 mt-1">Date: _____________</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <style>
+        {`
           @media print {
-            body { 
-              background: white !important; 
-              -webkit-print-color-adjust: exact;
+            .page-break-before {
+              page-break-before: always;
             }
-            .no-print { 
-              display: none !important; 
-            }
-            .print\\:shadow-none {
-              box-shadow: none !important;
-            }
-            .print\\:border {
-              border: 1px solid #ccc !important;
-            }
-            .print\\:border-t-2 {
-              border-top: 2px solid #ccc !important;
-            }
-            .print\\:border-gray-300 {
-              border-color: #d1d5db !important;
-            }
-            .print\\:mb-4 {
-              margin-bottom: 1rem !important;
-            }
-            @page {
-              margin: 1in;
-              size: A4;
+            .page-break-inside-avoid {
+              page-break-inside: avoid;
             }
           }
-        `
-      }} />
+        `}
+      </style>
     </div>
   );
+
 };
